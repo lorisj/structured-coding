@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+import sympy as sy
+
+log_base = 2
+
+def get_general_pmf(n):
+    output = []
+    for i in range(n-1):
+        output.append(sy.Symbol("a{kindex}".format(kindex=i), positive=True))
+    output.append(1)
+    for i in range(n-1):
+        output[n-1] = output[n-1] - output[i] #Normalization
+    return output
+
+def approx_entropy(pvec):
+    n = len(pvec)
+    partial_sum = 0
+    for i in range(n):
+        partial_sum = sy.sympify(partial_sum - pvec[i]*sy.log(pvec[i],log_base))
+    return partial_sum
+
+def nary_rep(num_in, numdigits, alphabet_size):
+    output=[0]*numdigits
+    i = 0
+    while(num_in !=  0):
+        output[i] = num_in % alphabet_size
+        num_in = num_in // alphabet_size
+        i = i + 1
+    return output
+
+
+def typical_set_deviation(test_vec, pvec):
+    partial_sum = 0
+    n = len(pvec) # n = alphabet size
+    
+    entropy = approx_entropy(pvec)
+    print(entropy)
+    num_digits = len(test_vec)
+    for i in range(num_digits):
+        partial_sum = partial_sum - sy.log(pvec[test_vec[i]],log_base)
+    partial_sum = sy.Abs((sy.sympify(1/num_digits) * partial_sum) - entropy)
+    return partial_sum
+
+
+def main():
+    #print(get_general_pmf(5))
+    alphabet_size = 2
+    num_digits = 8
+
+
+    pmf = get_general_pmf(alphabet_size)
+    
+
+    num_vecs = alphabet_size ** num_digits 
+    plots=[]
+    print(pmf)
+    for i in range(num_vecs): #for every vector in alphabet^n
+        cur_vec = nary_rep(i,num_digits,alphabet_size)
+        print(cur_vec)
+        deviation=typical_set_deviation(cur_vec,pmf) # get AEP deviation
+        print(deviation)
+        print(pmf[0])
+        plots.append(sy.plot(deviation,(pmf[0],0.0001,0.9999)))
+if (__name__ == "__main__"):
+    main()
